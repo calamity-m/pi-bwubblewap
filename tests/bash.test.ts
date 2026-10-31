@@ -56,9 +56,16 @@ test("sandboxed bash has a strict extended schema and runs through bwrap", async
         ]),
       }),
     };
-    await assert.rejects(
-      tool.execute("call-2", { command: `cat ${denied}` }, undefined, undefined, fakeContext),
+    const deniedResult = await tool.execute(
+      "call-2",
+      { command: `cat ${denied}` },
+      undefined,
+      undefined,
+      fakeContext,
     );
+    assert.equal(deniedResult.isError, true);
+    assert.doesNotMatch(deniedResult.content[0].text, /generated bash sentinel/);
+    assert.notEqual(deniedResult.structuredContent.exit_code, 0);
     process.env.BWUBBLEWAP_HARMLESS_SENTINEL = "inherited-ok";
     try {
       const inherited = await tool.execute(

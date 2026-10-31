@@ -1,6 +1,6 @@
 # pi-bwubblewap
 
-A Linux-only Pi extension that routes Pi 0.83.0 built-in tools through a
+A Linux-only Pi extension that routes Pi 1.4.0 built-in tools through a
 bubblewrap sandbox. The sandbox gives model-driven tools a read-only host root,
 explicit writable paths, masked credential stores, a separate PID namespace,
 and deny-by-default network access.
@@ -21,7 +21,7 @@ and deny-by-default network access.
 
 - Linux, including WSL2
 - Node.js 22.19 or newer
-- Pi 0.83.0
+- Pi 1.4.0
 - `bubblewrap`, `socat`, `ripgrep`, and `fd`
 
 ```bash
@@ -142,7 +142,7 @@ not pass through this proxy.
   directories or a mode-0600 `~/.netrc` so bubblewrap has durable mountpoints.
 - Helper/search input and output use 64 MiB limits; helper stderr uses 64 KiB.
 
-These limits cover implementation decisions D-1 through D-13: Pi 0.83.0,
+These limits cover implementation decisions D-1 through D-13: Pi 1.4.0,
 backend-backed operations, trusted project config path, deferred WSL interop,
 narrow Pi-agent masking, known WSL/Docker aliases, allowed ports, expanded
 operator rejection, fixed sandbox shell, no SOCKS, no force-activation, explicit

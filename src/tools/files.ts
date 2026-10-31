@@ -1,4 +1,4 @@
-import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { ExtensionToolContext } from "@earendil-works/pi-coding-agent";
 import {
   createEditToolDefinition,
   createLsToolDefinition,
@@ -68,7 +68,7 @@ export function createSandboxedFileDefinitions(cwd: string, getRuntime: () => Se
         params: { path: string },
         signal: AbortSignal | undefined,
         onUpdate: unknown,
-        ctx: ExtensionContext,
+        ctx: ExtensionToolContext,
       ) {
         const disabled = delegateIfDisabled(getRuntime(), stockRead, [
           id,
@@ -92,7 +92,7 @@ export function createSandboxedFileDefinitions(cwd: string, getRuntime: () => Se
         params: { path: string; content: string },
         signal: AbortSignal | undefined,
         onUpdate: unknown,
-        ctx: ExtensionContext,
+        ctx: ExtensionToolContext,
       ) {
         const disabled = delegateIfDisabled(getRuntime(), stockWrite, [
           id,
@@ -123,7 +123,7 @@ export function createSandboxedFileDefinitions(cwd: string, getRuntime: () => Se
         params: { path: string; edits: unknown[] },
         signal: AbortSignal | undefined,
         onUpdate: unknown,
-        ctx: ExtensionContext,
+        ctx: ExtensionToolContext,
       ) {
         const disabled = delegateIfDisabled(getRuntime(), stockEdit, [
           id,
@@ -148,7 +148,7 @@ export function createSandboxedFileDefinitions(cwd: string, getRuntime: () => Se
         params: { path?: string },
         signal: AbortSignal | undefined,
         onUpdate: unknown,
-        ctx: ExtensionContext,
+        ctx: ExtensionToolContext,
       ) {
         const disabled = delegateIfDisabled(getRuntime(), stockLs, [
           id,

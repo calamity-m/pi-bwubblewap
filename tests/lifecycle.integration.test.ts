@@ -85,12 +85,9 @@ test(
       );
       assert.equal(enabled.content[0].text, "enabled-ok");
       const childStarted = Date.now();
-      const longRunning = bash.execute(
-        "reload-child",
-        { command: "sleep 30" },
-        undefined,
-        undefined,
-        context,
+      const longRunning = assert.rejects(
+        bash.execute("reload-child", { command: "sleep 30" }, undefined, undefined, context),
+        /Command terminated without an exit code/,
       );
       await new Promise((resolve) => setTimeout(resolve, 50));
       await sandboxCommand.handler("reload", context);

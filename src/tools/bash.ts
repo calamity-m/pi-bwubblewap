@@ -1,4 +1,4 @@
-import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { ExtensionToolContext } from "@earendil-works/pi-coding-agent";
 import { createBashToolDefinition, type BashOperations } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { requestApproval } from "../approval.ts";
@@ -74,7 +74,7 @@ export function createSandboxedBashDefinition(cwd: string, getRuntime: () => Ses
       params: { command: string; timeout?: number; unsandboxed?: boolean; network?: boolean },
       signal: AbortSignal | undefined,
       onUpdate: Parameters<typeof stock.execute>[3],
-      ctx: ExtensionContext,
+      ctx: ExtensionToolContext,
     ) {
       const runtime = getRuntime();
       if (
