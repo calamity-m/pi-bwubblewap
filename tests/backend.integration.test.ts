@@ -7,6 +7,8 @@ import test from "node:test";
 import { BwrapBackend, runWrapped } from "../src/backend/bwrap.ts";
 import { cleanupSessionResources, createSessionResources } from "../src/backend/resources.ts";
 import type { EffectivePolicy } from "../src/policy/types.ts";
+import type { SessionResources } from "../src/runtime.ts";
+import { helperArgv } from "../src/backend/node-runtime.ts";
 
 const canRun = process.platform === "linux" && existsSync("/usr/bin/bwrap");
 const skipReason = canRun ? undefined : "requires Linux bubblewrap at /usr/bin/bwrap";
@@ -44,23 +46,13 @@ function policy(cwd: string, resources: { scratchDir: string }, denied: string[]
   });
 }
 
-async function helper(
-  resources: { helperPath: string },
-  action: string,
-  path: string,
-  input?: string,
-) {
+async function helper(resources: SessionResources, action: string, path: string, input?: string) {
   const backend = new BwrapBackend();
   const p = currentPolicy!;
-  const argv = backend.wrap(
-    [process.execPath, resources.helperPath, action, path],
-    p,
-    currentResources!,
-    {
-      network: "off",
-      stdin: input,
-    },
-  );
+  const argv = backend.wrap(helperArgv(resources, action, path), p, currentResources!, {
+    network: "off",
+    stdin: input,
+  });
   return runWrapped(argv, { network: "off", stdin: input });
 }
 

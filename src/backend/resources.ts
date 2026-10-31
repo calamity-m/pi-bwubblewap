@@ -3,6 +3,7 @@ import { chmod, copyFile, mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import type { SessionResources } from "../runtime.ts";
+import { resolveNodeRuntime } from "./node-runtime.ts";
 
 function resolveCommand(names: readonly string[]): string | undefined {
   for (const name of names) {
@@ -46,6 +47,7 @@ export async function createSessionResources(): Promise<SessionResources> {
     helperPath,
     emptyDir,
     emptyFile,
+    nodePath: resolveNodeRuntime(),
     bwrapPath: resolveCommand(["bwrap"]),
     rgPath: resolveCommand(["rg"]),
     fdPath: resolveCommand(["fd", "fdfind"]),

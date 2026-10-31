@@ -7,6 +7,7 @@ import { isAbsolute, join } from "node:path";
 import type { EffectivePolicy, NetworkMode, PathRule } from "../policy/types.ts";
 import type { SessionResources, ProbeResult } from "../runtime.ts";
 import type { ProxyManager } from "../proxy/server.ts";
+import { helperArgv, NODE_UNAVAILABLE } from "./node-runtime.ts";
 
 export const MAX_CHILD_STDOUT_BYTES = 64 * 1024 * 1024;
 export const MAX_CHILD_STDERR_BYTES = 64 * 1024;
@@ -237,7 +238,9 @@ export async function probeSelectiveNetwork(
   if (!resources.socatPath || !resources.proxySocket) {
     return {
       ok: false,
-      reason: "socat or proxy socket is unavailable",
+      reason: !resources.socatPath
+        ? "socat is unavailable; install socat with your distribution's package manager, ensure it is on Pi's PATH, and restart Pi"
+        : "proxy socket is unavailable; check proxy initialization and session directory access",
       selectiveNetworkChecked: false,
     };
   }
@@ -256,7 +259,11 @@ export async function probeSelectiveNetwork(
     if (result.exitCode !== 0 || !output.includes("403") || !output.includes("blocked.invalid")) {
       return {
         ok: false,
-        reason: "selective network probe did not observe the expected blocked CONNECT",
+        reason: redactDiagnostic(
+          `selective network probe did not observe the expected blocked CONNECT (exit ${result.exitCode}): ${result.stderr.toString().trim() || "no subprocess stderr"}. Check socat and local proxy connectivity.`,
+          policy,
+          resources,
+        ),
         selectiveNetworkChecked: false,
       };
     }
@@ -294,8 +301,24 @@ export class BwrapBackend implements Backend {
   }
 
   async probe(policy: EffectivePolicy, resources: SessionResources): Promise<ProbeResult> {
+    if (!resources.nodePath)
+      return { ok: false, reason: NODE_UNAVAILABLE, selectiveNetworkChecked: false };
     if (!resources.bwrapPath)
-      return { ok: false, reason: "bubblewrap is not installed", selectiveNetworkChecked: false };
+      return {
+        ok: false,
+        reason:
+          "bubblewrap is unavailable. Install bubblewrap with your distribution's package manager and ensure bwrap is on Pi's PATH, then restart Pi.",
+        selectiveNetworkChecked: false,
+      };
+    const failure = (check: string, result: WrappedResult): ProbeResult => ({
+      ok: false,
+      reason: redactDiagnostic(
+        `${check} (exit ${result.exitCode}): ${result.stderr.toString().trim() || "no subprocess stderr"}`,
+        policy,
+        resources,
+      ),
+      selectiveNetworkChecked: false,
+    });
     const deniedPath = join(resources.sessionDir, "probe-denied");
     const outsidePath = `/var/tmp/pi-bwubblewap-probe-${process.pid}`;
     const writePath = join(resources.scratchDir, "probe-write");
@@ -318,52 +341,42 @@ export class BwrapBackend implements Backend {
         { network: "off" },
       );
       if (trivial.exitCode !== 0)
-        return {
-          ok: false,
-          reason: redactDiagnostic(trivial.stderr.toString(), policy, resources),
-          selectiveNetworkChecked: false,
-        };
+        return failure(
+          "bubblewrap launch failed; check unprivileged user namespaces and container/AppArmor restrictions",
+          trivial,
+        );
       const read = await this.run(
-        this.wrap(
-          [process.execPath, resources.helperPath, "read-r", deniedPath],
-          probePolicy,
-          resources,
-          { network: "off" },
-        ),
+        this.wrap(helperArgv(resources, "read-r", deniedPath), probePolicy, resources, {
+          network: "off",
+        }),
         { network: "off" },
       );
       if (read.exitCode === 0 || read.stdout.toString().includes("probe sentinel"))
-        return { ok: false, reason: "probe denyRead check failed", selectiveNetworkChecked: false };
+        return failure("probe denyRead check failed; check filesystem mask enforcement", read);
       const write = await this.run(
-        this.wrap(
-          [process.execPath, resources.helperPath, "write", writePath],
-          probePolicy,
-          resources,
-          { network: "off", stdin: "probe" },
-        ),
+        this.wrap(helperArgv(resources, "write", writePath), probePolicy, resources, {
+          network: "off",
+          stdin: "probe",
+        }),
         { network: "off", stdin: "probe" },
       );
       if (write.exitCode !== 0)
-        return {
-          ok: false,
-          reason: "probe scratch write check failed",
-          selectiveNetworkChecked: false,
-        };
+        return failure(
+          "probe scratch write check failed; check Node and scratch directory access",
+          write,
+        );
       const outside = await this.run(
-        this.wrap(
-          [process.execPath, resources.helperPath, "write", outsidePath],
-          probePolicy,
-          resources,
-          { network: "off", stdin: "probe" },
-        ),
+        this.wrap(helperArgv(resources, "write", outsidePath), probePolicy, resources, {
+          network: "off",
+          stdin: "probe",
+        }),
         { network: "off", stdin: "probe" },
       );
       if (outside.exitCode === 0)
-        return {
-          ok: false,
-          reason: "probe outside-write check failed",
-          selectiveNetworkChecked: false,
-        };
+        return failure(
+          "probe outside-write check failed; check read-only filesystem enforcement",
+          outside,
+        );
       await access(policy.cwd, constants.F_OK);
       return { ok: true, selectiveNetworkChecked: false };
     } catch (error) {

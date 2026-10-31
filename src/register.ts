@@ -122,7 +122,9 @@ export default function register(pi: ExtensionAPI): void {
       if (policy.network === "deny") {
         resources.proxySocket = join(resources.sessionDir, "proxy.sock");
         if (!resources.socatPath) {
-          effectivePolicy = networkOff("socat is unavailable");
+          effectivePolicy = networkOff(
+            "socat is unavailable; install socat with your distribution's package manager, ensure it is on Pi's PATH, and restart Pi",
+          );
         } else {
           const proxyManager = new ProxyManager({
             socketPath: resources.proxySocket,
@@ -167,7 +169,7 @@ export default function register(pi: ExtensionAPI): void {
         };
         warn(
           ctx,
-          `sandbox unavailable: ${probe.reason ?? "bubblewrap probe failed"}. Install with sudo apt install bubblewrap socat; Docker is the documented but unimplemented contingency`,
+          `sandbox unavailable: ${probe.reason ?? "bubblewrap probe failed; inspect the sandbox configuration and host restrictions"}`,
         );
         return;
       }

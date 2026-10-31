@@ -24,9 +24,20 @@ and deny-by-default network access.
 - Pi 1.4.0
 - `bubblewrap`, `socat`, `ripgrep`, and `fd`
 
-```bash
-sudo apt install bubblewrap socat ripgrep fd-find
-```
+Install these tools with your distribution's package manager (package names vary;
+`fd` may be packaged as `fd-find` and invoked as `fdfind`). Ensure the executables
+are on the PATH inherited by Pi.
+
+Standalone Pi also needs a separate Node.js runtime: its compiled executable is
+not Node. The extension validates a Node host executable or resolves `node` /
+`nodejs` from PATH and uses that runtime for every filesystem helper. If Node is
+missing, install it using your distribution's package manager or a Node version
+manager, then restart Pi. Node and its libraries must be readable under the sandbox
+policy; credential stores such as `~/.pi` remain masked.
+
+If bubblewrap is installed but cannot launch, inspect the reported subprocess
+stderr and the host's unprivileged user namespace, container, and AppArmor
+restrictions rather than reinstalling packages. Probe failures keep tools disabled.
 
 ## Install
 

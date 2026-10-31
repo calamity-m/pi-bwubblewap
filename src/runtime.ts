@@ -14,6 +14,8 @@ export interface SessionResources {
   helperPath: string;
   emptyDir: string;
   emptyFile: string;
+  /** Actual Node executable, validated during session initialization. */
+  nodePath?: string;
   bwrapPath?: string;
   rgPath?: string;
   fdPath?: string;

@@ -6,6 +6,7 @@ import type {
 } from "@earendil-works/pi-coding-agent";
 import type { SessionRuntime } from "../runtime.ts";
 import { BwrapBackend, redactDiagnostic, runWrapped } from "./bwrap.ts";
+import { helperArgv } from "./node-runtime.ts";
 
 function activeRuntime(
   getRuntime: () => SessionRuntime,
@@ -25,12 +26,7 @@ async function helper(
   const backend = new BwrapBackend();
   const invocation = { network: "off" as const, stdin };
   const result = await runWrapped(
-    backend.wrap(
-      [process.execPath, resources.helperPath, action, path],
-      policy,
-      resources,
-      invocation,
-    ),
+    backend.wrap(helperArgv(resources, action, path), policy, resources, invocation),
     invocation,
   );
   if (result.exitCode !== 0) {
