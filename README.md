@@ -30,12 +30,8 @@ sudo apt install bubblewrap socat ripgrep fd-find
 
 ## Install
 
-Review the extension before installation: Pi extensions run with host user
-permissions. For local development:
-
 ```bash
-npm install --min-release-age=0
-pi -e ./extensions/index.ts
+pi install git:git@github.com:calamity-m/pi-bwubblewap
 ```
 
 Use `--tools read,bash,edit,write,grep,find,ls` to activate all seven tools.
