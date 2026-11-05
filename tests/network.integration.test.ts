@@ -107,15 +107,15 @@ test(
         ctx,
       );
       assert.equal(envResult.content[0].text, "proxy-env-ok");
-      await assert.rejects(
-        tool.execute(
-          "raw-socket",
-          { command: "timeout 2 bash -c 'echo probe >/dev/tcp/1.1.1.1/443'" },
-          undefined,
-          undefined,
-          ctx,
-        ),
+      const rawSocket = await tool.execute(
+        "raw-socket",
+        { command: "timeout 2 bash -c 'echo probe >/dev/tcp/1.1.1.1/443'" },
+        undefined,
+        undefined,
+        ctx,
       );
+      assert.equal(rawSocket.isError, true);
+      assert.notEqual(rawSocket.structuredContent.exit_code, 0);
       assert.equal(proxy.activeTokenCount(), 0);
     } finally {
       await proxy.close();
