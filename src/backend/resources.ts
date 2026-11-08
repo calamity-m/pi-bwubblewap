@@ -76,6 +76,13 @@ export async function cleanupSessionResources(
   resources: Pick<SessionResources, "sessionDir"> | undefined,
 ): Promise<void> {
   if (!resources) return;
+  // Bun cannot recursively remove the mode-000 mask directory. Restore owner
+  // access only at teardown, after sandboxed operations have finished.
+  try {
+    await chmod(join(resources.sessionDir, "runtime", "masks", "empty-dir"), 0o700);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
   await rm(resources.sessionDir, { recursive: true, force: true });
 }
 

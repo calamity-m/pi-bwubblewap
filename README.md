@@ -181,6 +181,10 @@ npm run pack:dry-run
 node scripts/bench.mjs
 ```
 
+For runtime-specific cleanup coverage, run the
+[standalone Pi shutdown smoke test](docs/standalone-pi-smoke-test.md).
+Node-only tests do not reproduce Bun's mode-000 directory removal failure.
+
 ## License
 
 MIT © 2026 calamity-m
