@@ -14,7 +14,9 @@ and deny-by-default network access.
   and WSL/Docker alias paths.
 - Allows writes only in the project, session scratch directory, and host `/tmp`.
 - Uses an authenticated per-call filtering proxy for selective HTTP/HTTPS.
-- Supports approved host execution and full-network escalation.
+- Supports approved host execution and full-network escalation. Approval dialogs
+  keep Deny/Allow once visible while large commands are paged with PgUp/PgDn or
+  Home/End; Up/Down changes the selection and Enter confirms (Escape denies).
 - Fails closed when initialization, ownership, or backend probing fails.
 
 ## Requirements
